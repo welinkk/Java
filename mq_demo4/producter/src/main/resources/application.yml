@@ -1,0 +1,11 @@
+server:
+  port: 9003
+spring:
+  application:
+    name: producter
+  rabbitmq:
+    host: localhost
+    port: 5672
+    virtual-host: host1
+    username: kk
+    password: admin123
