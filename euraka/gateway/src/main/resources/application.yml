@@ -1,0 +1,21 @@
+server:
+  port: 8043
+eureka:
+  instance:
+    prefer-ip-address: true #使用IP注册
+    instance-id: ${spring.cloud.client.ipaddress}:${server.port}
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8040/eureka
+
+spring:
+  cloud:
+    gateway:
+     discovery:
+        locator:
+         enabled: true
+         route-id-prefix: /api-service/**
+
+  application:
+    name: gateway
+

@@ -1,0 +1,11 @@
+server:
+  port: 8042
+# 服务注册中心
+spring:
+  application:
+    name: serviceB
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://192.168.10.32:8040/eureka
+      service-id: serviceB

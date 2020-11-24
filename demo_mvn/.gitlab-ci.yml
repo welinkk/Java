@@ -1,0 +1,64 @@
+stages:
+  - mvnjava
+  - build
+  - deploy
+
+cache:
+  paths: 
+    - .m2/
+
+variables:
+  MAVEN_IMAGE: maven:3-jdk-8
+  REGISTRY: registry.cn-hangzhou.aliyuncs.com
+  REPO: kxq
+  PORT: 8188
+  
+build image:
+    image: $MAVEN_IMAGE
+    stage: mvnjava
+    script:
+      - mvn clean package docker:build -q -Dmaven.test.skip=true
+    tags:
+      - maven
+    only:
+      - master
+
+
+build-master:
+  stage: build
+  before_script:
+    - whoami
+    - hostname
+    - echo $CI_PROJECT_NAME
+    - echo $CI_COMMIT_SHA
+    - docker login --username $USERNAME --password $USERPASSWD $REGISTRY
+    - CONTAINER_NAME=`echo $CI_PROJECT_NAME | tr 'A-Z' 'a-z'| tr '_' '-'`
+    - TAG=`expr substr $CI_COMMIT_SHA 1 8`
+  script:
+    - docker tag springboot/demo_mvn $REGISTRY/$REPO/$CONTAINER_NAME:$TAG 
+    - docker push $REGISTRY/$REPO/$CONTAINER_NAME:$TAG 
+  tags: 
+    - dockerkk
+  only: 
+    - master
+  after_script:
+    -  ls target/
+  when: on_success
+
+deploy_master:
+  stage: deploy
+  before_script:
+    - CONTAINER_NAME=`echo $CI_PROJECT_NAME | tr 'A-Z' 'a-z'| tr '_' '-'`
+    - TAG=`expr substr $CI_COMMIT_SHA 1 8`
+  script:
+    - echo $REGISTRY/$REPO/$CONTAINER_NAME:$TAG
+    - bash ~/scripts/150.sh $CONTAINER_NAME $PORT $PORT $REGISTRY/$REPO/$CONTAINER_NAME:$TAG root 192.168.10.150
+
+  tags:
+    - shell
+    
+  only:
+    - master
+
+  when: on_success
+
